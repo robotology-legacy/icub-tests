@@ -88,4 +88,4 @@ add_subdirectory(src/skinWrapperTest)
 # Build system status tests (needs yarp newer than f0c9e83a66d1e2685361f82dd98b20ed6479ec04)
 #add_subdirectory(src/system-status)
 
-
+add_subdirectory(src/checkTimeGetPid)
