@@ -106,12 +106,37 @@ void checkTimeGetPid::tearDown() {
 }
 
 
+
 void checkTimeGetPid::run() {
 
     double max=0.0; //sec
     double min = 100.0; //sec
     double tot=0.0;
     Pid pids[nj];
+    
+    std::cout << "check validity...";
+
+    Pid pidaux[nj];
+    for(int j=0; j<nj; j++)
+    {
+        iPidCtrl->getPid(VOCAB_PIDTYPE_POSITION, j, &pidaux[j]);
+    }
+    
+    iPidCtrl->getPids(VOCAB_PIDTYPE_POSITION, pids);
+    for(int j=0; j<nj; j++)
+    {
+        if( (pids[j].kp != pidaux[j].kp) || 
+            (pids[j].kd != pidaux[j].kd) ||
+            (pids[j].ki != pidaux[j].ki) )
+        {
+            std::cout << "error!! on j " << j;
+            RTF_ASSERT_ERROR("pid not equal!!");
+        }
+        
+    }
+    
+    std::cout << "OK all pids are equal!! Start next step...";
+    
     for(int i=0; i<numofAttempts; i++)
     {
         double start = yarp::os::Time::now();
