@@ -113,6 +113,10 @@ void checkTimeGetPid::run() {
     double min = 100.0; //sec
     double tot=0.0;
     Pid pids[nj];
+    double encs[nj];
+    int errors=0;
+    int spikes=0;
+    double last_encs[nj];
     
     std::cout << "check validity...";
 
@@ -120,8 +124,10 @@ void checkTimeGetPid::run() {
     for(int j=0; j<nj; j++)
     {
         iPidCtrl->getPid(VOCAB_PIDTYPE_POSITION, j, &pidaux[j]);
+        
     }
     
+   
     iPidCtrl->getPids(VOCAB_PIDTYPE_POSITION, pids);
     for(int j=0; j<nj; j++)
     {
@@ -135,6 +141,10 @@ void checkTimeGetPid::run() {
         
     }
     
+    
+    if(!iEncoders->getEncoders(last_encs))
+        std::cout << "error in getEncoders";
+    
     std::cout << "OK all pids are equal!! Start next step...";
     
     for(int i=0; i<numofAttempts; i++)
@@ -147,8 +157,34 @@ void checkTimeGetPid::run() {
             min = elapseds[i];
         if(elapseds[i]> max)
             max = elapseds[i];
+        
+        for(int p=0; p<nj; p++)
+            encs[p] = 200.0;
+        
+        bool ret = iEncoders->getEncoders(encs);
+        if(!ret)
+            std::cout << "error in getEncoders" <<std::endl;
+        
+        for(int j=0; j<nj; j++)
+        {
+            if(encs[j] == 0.0)
+            {errors++;}
+            
+            if( ((last_encs[j] - encs[j]) >5) || ((last_encs[j] - encs[j]) < -5))
+            {spikes++;}
+        }
+        
+        
+        for(int p=0; p<nj; p++)
+            last_encs[p] = encs[p];
+        
         yarp::os::Time::delay(delay);
     }
+    
+    //check getEncoders
+    //if(errors>0)
+        std::cout << "GET_ENCODERS ERROR = "<< errors << " SPIKES= " << spikes << std::endl;
+        
     
     //print to file!!
     std::fstream fs;
